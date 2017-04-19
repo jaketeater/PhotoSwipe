@@ -127,11 +127,11 @@ _registerModule('DesktopZoom', {
 				_calculatePanBounds(_currZoomLevel, true);
 
 				var deltaWheelDirection = (_wheelDelta.y) < 0 ? -1 : 1;
-				var deltaWheelZoom = _currZoomLevel - deltaWheelDirection * 0.25;
+				var deltaWheelZoom = _currZoomLevel - deltaWheelDirection * 0.2;
 				var destZoomLevel = Math.min(Math.max(self.currItem.initialZoomLevel, deltaWheelZoom), 1);
 				self.zoomTo(destZoomLevel, zoomTarget, 333);	
 			}
-			
+
 		},
 
 		toggleDesktopZoom: function(centerPoint) {
