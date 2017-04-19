@@ -90,68 +90,48 @@ _registerModule('DesktopZoom', {
 
 		handleMouseWheel: function(e) {
 
-			if(_currZoomLevel <= self.currItem.fitRatio) {
-				if( _options.modal ) {
+			if (! self.isAnim) {
 
-					if (!_options.closeOnScroll || _numAnimations || _isDragging) {
-						e.preventDefault();
-					} else if(_transformKey && Math.abs(e.deltaY) > 2) {
-						// close PhotoSwipe
-						// if browser supports transforms & scroll changed enough
-						_closedByScroll = true;
-						self.close();
+				// allow just one event to fire
+				e.stopPropagation();
+
+				// https://developer.mozilla.org/en-US/docs/Web/Events/wheel
+				_wheelDelta.x = 0;
+
+				if('deltaX' in e) {
+					if(e.deltaMode === 1 /* DOM_DELTA_LINE */) {
+						// 18 - average line height
+						_wheelDelta.x = e.deltaX * 18;
+						_wheelDelta.y = e.deltaY * 18;
+					} else {
+						_wheelDelta.x = e.deltaX;
+						_wheelDelta.y = e.deltaY;
 					}
-
-				}
-				return true;
-			}
-
-			// allow just one event to fire
-			e.stopPropagation();
-
-			// https://developer.mozilla.org/en-US/docs/Web/Events/wheel
-			_wheelDelta.x = 0;
-
-			if('deltaX' in e) {
-				if(e.deltaMode === 1 /* DOM_DELTA_LINE */) {
-					// 18 - average line height
-					_wheelDelta.x = e.deltaX * 18;
-					_wheelDelta.y = e.deltaY * 18;
+				} else if('wheelDelta' in e) {
+					if(e.wheelDeltaX) {
+						_wheelDelta.x = -0.16 * e.wheelDeltaX;
+					}
+					if(e.wheelDeltaY) {
+						_wheelDelta.y = -0.16 * e.wheelDeltaY;
+					} else {
+						_wheelDelta.y = -0.16 * e.wheelDelta;
+					}
+				} else if('detail' in e) {
+					_wheelDelta.y = e.detail;
 				} else {
-					_wheelDelta.x = e.deltaX;
-					_wheelDelta.y = e.deltaY;
+					return;
 				}
-			} else if('wheelDelta' in e) {
-				if(e.wheelDeltaX) {
-					_wheelDelta.x = -0.16 * e.wheelDeltaX;
-				}
-				if(e.wheelDeltaY) {
-					_wheelDelta.y = -0.16 * e.wheelDeltaY;
-				} else {
-					_wheelDelta.y = -0.16 * e.wheelDelta;
-				}
-			} else if('detail' in e) {
-				_wheelDelta.y = e.detail;
-			} else {
-				return;
+
+				var zoomTarget = {x:_viewportSize.x/2, y:_viewportSize.y/2 + _initalWindowScrollY };
+
+				_calculatePanBounds(_currZoomLevel, true);
+
+				var deltaWheelDirection = (_wheelDelta.y) < 0 ? -1 : 1;
+				var deltaWheelZoom = _currZoomLevel - deltaWheelDirection * 0.25;
+				var destZoomLevel = Math.min(Math.max(self.currItem.initialZoomLevel, deltaWheelZoom), 1);
+				self.zoomTo(destZoomLevel, zoomTarget, 333);	
 			}
-
-			_calculatePanBounds(_currZoomLevel, true);
-
-			var newPanX = _panOffset.x - _wheelDelta.x,
-				newPanY = _panOffset.y - _wheelDelta.y;
-
-			// only prevent scrolling in nonmodal mode when not at edges
-			if (_options.modal ||
-				(
-				newPanX <= _currPanBounds.min.x && newPanX >= _currPanBounds.max.x &&
-				newPanY <= _currPanBounds.min.y && newPanY >= _currPanBounds.max.y
-				) ) {
-				e.preventDefault();
-			}
-
-			// TODO: use rAF instead of mousewheel?
-			self.panTo(newPanX, newPanY);
+			
 		},
 
 		toggleDesktopZoom: function(centerPoint) {

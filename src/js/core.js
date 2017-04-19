@@ -448,6 +448,7 @@ var _animations = {},
 
 		var animloop = function(){
 			if ( _animations[name] ) {
+				self.isAnim = true
 				
 				t = _getCurrentTime() - startAnimTime; // time diff
 				//b - beginning (start prop)
@@ -455,6 +456,7 @@ var _animations = {},
 
 				if ( t >= d ) {
 					_stopAnimation(name);
+					self.isAnim = false
 					onUpdate(endProp);
 					if(onComplete) {
 						onComplete();
